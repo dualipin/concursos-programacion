@@ -1,0 +1,19 @@
+{
+    "name": "React + Express + MySQL",
+    "dockerComposeFile": "docker-compose.yml",
+    "service": "react",
+    "workspaceFolder": "/workspaces/app",
+    "remoteEnv": {
+        "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "cweijan.vscode-mysql-client2",
+                "bradlc.vscode-tailwindcss",
+                "streetsidesoftware.code-spell-checker-spanish"
+            ]
+        }
+    }
+    //   "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/app,type=bind,consistency=cached"
+}
