@@ -3,8 +3,8 @@ services:
     image: node
     working_dir: /workspaces/app/frontend
     volumes:
-      - ..:/workspaces/app:cached
-    command: sh -c "npm install && npm run dev"
+      - ..:/workspaces/app:delegated
+    command: sh -c "sleep infinity"
     ports:
       - "5173:5173"
     depends_on:
@@ -13,6 +13,7 @@ services:
   express:
     image: node
     working_dir: /workspaces/app/backend
+    command: sh -c "sleep infinity"
     environment:
       - DB_HOST=mysql
       - DB_USER=root
@@ -20,8 +21,7 @@ services:
       - DB_NAME=concurso
 
     volumes:
-      - ..:/workspaces/app:cached
-    command: sh -c "npm install && npm run dev"
+      - ..:/workspaces/app:delegated
     ports:
       - "3000:3000"
     depends_on:

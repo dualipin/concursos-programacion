@@ -1,34 +1,35 @@
 import { Request, Response, Router } from "express";
 import { parseDate, parseDateTime } from "@/util/parseDate";
 import { bd } from "@/config/bd";
+import { log_sis } from "@/util/log_sis";
 
 // Ruta para manejar los concursos
 export const concursoRuta = Router();
 
 // Creacion de un nuevo concurso
-concursoRuta.post("/concursos", async (req: Request, res: Response): Promise<any> => {
-    const { clv, nom, dsc, fini, ffin, fmin, lugar, rq, criterios, maxpar } = req.body;
+concursoRuta.post("/registrar/:registro", async (req: Request, res: Response): Promise<any> => {
+    const { clv, nom, dsc, fcre, ffin, fins, lugar, rq, maxpar, criterios } = req.body;
 
-    if (!clv || !nom || !fini || !ffin || !fmin || !lugar || maxpar === undefined || maxpar === null) {
+    if (!clv || !nom || !fcre || !ffin || !fins || !lugar || maxpar === undefined || maxpar === null) {
         return res.status(400).json({ error: "Campos requeridos" });
     }
 
-    const finiFormatted = parseDate(fini);
+    const fcreFormatted = parseDate(fcre);
     const ffinFormatted = parseDate(ffin);
-    const fminFormatted = parseDate(fmin);
+    const finsFormatted = parseDate(fins);
 
-    if (!finiFormatted || !ffinFormatted || !fminFormatted) {
+    if (!fcreFormatted || !ffinFormatted || !finsFormatted) {
         return res.status(400).json({ error: "Formato de fecha invalido" });
     }
 
-    // Validar que fini <= fmin <= ffin
-    if (finiFormatted > fminFormatted || fminFormatted > ffinFormatted) {
-        return res.status(400).json({ error: "Las fechas deben cumplir: fini <= fmin <= ffin" });
+    // Validar que fcre <= fins <= ffin
+    if (fcreFormatted > finsFormatted || finsFormatted > ffinFormatted) {
+        return res.status(400).json({ error: "Las fechas deben cumplir: fecha creacion <= fecha maxima de inscripcion <= fecha del concurso" });
     }
 
     // Validar maxpar (por ejemplo, debe ser un entero positivo)
     if (typeof maxpar !== "number" || maxpar <= 0 || !Number.isInteger(maxpar)) {
-        return res.status(400).json({ error: "El campo maxpar debe ser un entero positivo" });
+        return res.status(400).json({ error: "El campo maximos participantes debe ser un entero positivo" });
     }
 
     const conn = await bd.getConnection();
@@ -40,7 +41,7 @@ concursoRuta.post("/concursos", async (req: Request, res: Response): Promise<any
             INSERT INTO concurso (clv, nom, dsc, fini, ffin, fmin, rq, lugar, maxpar)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
         `;
-        await conn.query(concursoQuery, [clv, nom, dsc, finiFormatted, ffinFormatted, fminFormatted, rq, lugar, maxpar]);
+        await conn.query(concursoQuery, [clv, nom, dsc, fcreFormatted, ffinFormatted, finsFormatted, rq, lugar, maxpar]);
 
         // Insert criterios if provided and is an array
         if (Array.isArray(criterios)) {
@@ -58,10 +59,15 @@ concursoRuta.post("/concursos", async (req: Request, res: Response): Promise<any
             }
         }
 
-
+        log_sis(conn, {
+            usr: req.params.registro || "sistema",
+            acc: "Registro de concurso " + clv,
+            ta: "concurso"
+        });
 
         await conn.commit();
         res.status(201).json({ message: `Concurso ${nom} fue creado` });
+
     } catch (error) {
         await conn.rollback();
         res.status(500).json({ error: "Error al crear el concurso", details: error });
@@ -71,7 +77,7 @@ concursoRuta.post("/concursos", async (req: Request, res: Response): Promise<any
 });
 
 // Obtener todos los concursos
-concursoRuta.get("/concursos", async (_req: Request, res: Response): Promise<any> => {
+concursoRuta.get("/obtener", async (_req: Request, res: Response): Promise<any> => {
     try {
         const query = `SELECT * FROM concurso;`;
         const [rows] = await bd.query(query) as any;
@@ -110,7 +116,7 @@ concursoRuta.get("/concursos", async (_req: Request, res: Response): Promise<any
 });
 
 // Obtener un concurso por clave
-concursoRuta.get("/concursos/:clv", async (req: Request, res: Response): Promise<any> => {
+concursoRuta.get("/obtener/:clv", async (req: Request, res: Response): Promise<any> => {
     const { clv } = req.params;
 
     try {
@@ -152,13 +158,13 @@ concursoRuta.get("/concursos/:clv", async (req: Request, res: Response): Promise
 });
 
 // Actualizar un concurso
-concursoRuta.put("/concursos/:clv", async (req: Request, res: Response): Promise<any> => {
-    const { clv } = req.params;
-    const { nom, dsc, fini, ffin, fmin, lugar, rq, criterios } = req.body;
+concursoRuta.put("/actualizar/:clv/:actualizo", async (req: Request, res: Response): Promise<any> => {
+    const { clv, actualizo } = req.params;
+    const { nom, dsc, fcre, ffin, fins, lugar, rq, maxpar, criterios } = req.body;
 
-    const finiFormatted = fini ? parseDate(fini) : null;
+    const fcreFormatted = fcre ? parseDate(fcre) : null;
     const ffinFormatted = ffin ? parseDate(ffin) : null;
-    const fminFormatted = fmin ? parseDate(fmin) : null;
+    const finsFormatted = fins ? parseDate(fins) : null;
 
     const conn = await bd.getConnection();
     try {
@@ -167,11 +173,11 @@ concursoRuta.put("/concursos/:clv", async (req: Request, res: Response): Promise
         // Actualizar concurso
         const query = `
             UPDATE concurso
-            SET nom = ?, dsc = ?, fini = ?, ffin = ?, fmin = ?, rq =  ?, lugar = ?
+            SET nom = ?, dsc = ?, fcre = ?, ffin = ?, fins = ?, rq =  ?, lugar = ?, maxpar = ?
             WHERE clv = ?;
         `;
         const [result]: any = await conn.query(query, [
-            nom, dsc, finiFormatted, ffinFormatted, fminFormatted, rq, lugar, clv
+            nom, dsc, fcreFormatted, ffinFormatted, finsFormatted, rq, lugar, maxpar, clv
         ]);
 
         if (result?.affectedRows === 0) {
@@ -198,6 +204,12 @@ concursoRuta.put("/concursos/:clv", async (req: Request, res: Response): Promise
             }
         }
 
+        log_sis(conn, {
+            usr: actualizo || "sistema",
+            acc: "Actualizacion de concurso " + clv,
+            ta: "concurso"
+        });
+
         await conn.commit();
         res.status(200).json({ message: "Concurso y criterios actualizados" });
     } catch (error) {
@@ -209,7 +221,7 @@ concursoRuta.put("/concursos/:clv", async (req: Request, res: Response): Promise
 });
 
 // Eliminar un concurso
-concursoRuta.delete("/concursos/:clv", async (req: Request, res: Response): Promise<any> => {
+concursoRuta.delete("/eliminar/:clv", async (req: Request, res: Response): Promise<any> => {
     const { clv } = req.params;
     const conn = await bd.getConnection();
 
@@ -238,7 +250,7 @@ concursoRuta.delete("/concursos/:clv", async (req: Request, res: Response): Prom
 });
 
 // Listado de participantes inscritos a un concurso
-concursoRuta.get('/concursos/:clv/participantes', async (req: Request, res: Response): Promise<any> => {
+concursoRuta.get('/obtener/:clv/participantes', async (req: Request, res: Response): Promise<any> => {
     const { clv } = req.params;
 
     try {
@@ -255,10 +267,25 @@ concursoRuta.get('/concursos/:clv/participantes', async (req: Request, res: Resp
     }
 });
 
-// Inscribir a un participante en un concurso
-concursoRuta.post('/concursos/:clv/participantes', async (req: Request, res: Response): Promise<any> => {
+concursoRuta.get('/obtener/:clv/jurados', async (req: Request, res: Response): Promise<any> => {
     const { clv } = req.params;
-    const { rfc, tipo } = req.body;
+    try {
+        const query = `SELECT * FROM rol_concurso WHERE clvcon = ? and tipo='jurado';`;
+        const [rows] = await bd.query(query, [clv]) as any;
+
+        if (Array.isArray(rows) && rows.length === 0) {
+            return res.status(404).json({ error: "Jurados no encontrados" });
+        }
+
+        res.status(200).json(rows);
+    } catch (error) {
+        res.status(500).json({ error: "Error al obtener los jurados", details: error });
+    }
+});
+
+// Inscribir a un participante en un concurso
+concursoRuta.get('/registrar/:clv/:tipo/:rfc', async (req: Request, res: Response): Promise<any> => {
+    const { clv, tipo, rfc } = req.params;
 
     if (!rfc || !tipo) {
         return res.status(400).json({ error: "RFC y tipo son requeridos" });
@@ -273,3 +300,17 @@ concursoRuta.post('/concursos/:clv/participantes', async (req: Request, res: Res
         res.status(500).json({ error: "Error al inscribir al participante", details: error });
     }
 });
+
+// Desinscribir a un participante de un concurso
+concursoRuta.delete('/desinscribir/:clv/:rfc', async (req: Request, res: Response): Promise<any> => {
+    const { clv, rfc } = req.params;
+
+    try {
+        const query = `DELETE FROM rol_concurso WHERE rfc = ? AND clvcon = ?;`;
+        await bd.query(query, [rfc, clv]);
+
+        res.status(200).json({ message: "Participante desinscrito exitosamente" });
+    } catch (error) {
+        res.status(500).json({ error: "Error al desinscribir al participante", details: error });
+    }
+}); 

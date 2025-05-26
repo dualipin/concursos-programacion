@@ -22,7 +22,7 @@ export default function LoginForm() {
     try {
       setIsSubmitting(true);
       setError("");
-      const response = await api.post('/login', {
+    const response = await api.post('/usuarios/login', {
         rfc: email,
         contrasena: password
       })
