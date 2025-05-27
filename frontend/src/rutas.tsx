@@ -5,6 +5,7 @@ import { lazy, Suspense } from "react";
 import Protegida from "./compon/Protegida";
 import Cargando from "./Cargando";
 import Bienvenida from "./paginas/Bienvenida";
+import NoEncontrado from "./NoEncontrado";
 
 const router = createBrowserRouter([
   {
@@ -93,6 +94,10 @@ const router = createBrowserRouter([
         ],
       },
     ],
+  },
+  {
+    path: "*",
+    Component: NoEncontrado,
   },
 ]);
 
