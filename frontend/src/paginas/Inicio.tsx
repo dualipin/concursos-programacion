@@ -1,6 +1,4 @@
-import { api } from "@/api";
 import LoginForm from "@/compon/LoginForm";
-import ProximosConcursos from "@/compon/ProximosConcursos";
 import TarjetaSimpleConcurso from "@/compon/TarjetaSimpleConcurso";
 import { useUsuarioStore } from "@/estados/usuario-est";
 import { proximosConcursos } from "@/servicios/concurso-serv";
@@ -17,7 +15,9 @@ export default function Inicio() {
             if (usuario.tipo === "jurado") {
                 navigate("/jurado");
             } else if (usuario.tipo === "participante") {
-                navigate("/concursos");
+                navigate("/participante");
+            } else if (usuario.tipo === "admin") {
+                navigate("/admin");
             }
         }
 
@@ -27,12 +27,12 @@ export default function Inicio() {
         };
 
         obtenerProximosConcursos();
-    }, []);
+    }, [usuario]);
 
     const [concursos, setConursos] = useState([]);
 
     return (
-        <div className="container mx-auto my-10 px-4">
+        <div className="container mx-auto my-10 mt-20 px-4">
             <div className="text-center mb-10">
                 <img
                     src="https://escolar.macuspana.tecnm.mx/imagenes/empresa/logo2.png"
@@ -71,7 +71,7 @@ export default function Inicio() {
                                                 descripcion: concurso.dsc,
                                                 estado: "activo",
                                                 fechaInicio: concurso.ffin,
-                                                fechaFin: concurso.fini,
+                                                fechaFin: concurso.fins,
                                                 participantes: concurso.fechaMaximaInscripcion,
                                                 premio: concurso.lugar,
                                             }

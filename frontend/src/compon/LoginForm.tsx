@@ -22,7 +22,7 @@ export default function LoginForm() {
     try {
       setIsSubmitting(true);
       setError("");
-    const response = await api.post('/usuarios/login', {
+      const response = await api.post('/usuarios/login', {
         rfc: email,
         contrasena: password
       })
@@ -37,7 +37,10 @@ export default function LoginForm() {
           navigate("/jurado");
         }
         if (response.data?.tipo === "participante") {
-          navigate("/concursos");
+          navigate("/participante");
+        }
+        if (response.data?.tipo === "admin") {
+          navigate("/admin");
         }
 
       } else {
@@ -61,6 +64,7 @@ export default function LoginForm() {
 
   return (
     <div className="max-w-md mx-auto bg-white shadow-lg rounded-lg p-8">
+
       <h2 className="text-2xl font-bold text-center mb-6">Iniciar Sesión</h2>
       <form onSubmit={handleSubmit}>
         <div className="mb-4">

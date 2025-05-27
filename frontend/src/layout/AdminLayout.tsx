@@ -1,8 +1,7 @@
+import Menu from "@/compon/Menu";
 import { Outlet } from "react-router";
-import Menu from "./compon/Menu";
 
-function App() {
-
+export default function AdminLayout() {
   return (
     <>
       <Menu />
@@ -13,10 +12,11 @@ function App() {
           <main className="flex-1 p-4 overflow-y-auto">
             <Outlet />
           </main>
+          <footer className="bg-gray-800 text-white p-4 text-center">
+            &copy; {new Date().getFullYear()} Panel de Administración
+          </footer>
         </div>
       </div>
     </>
-  )
+  );
 }
-
-export default App

@@ -11,7 +11,8 @@
             "extensions": [
                 "cweijan.vscode-mysql-client2",
                 "bradlc.vscode-tailwindcss",
-                "streetsidesoftware.code-spell-checker-spanish"
+                "streetsidesoftware.code-spell-checker-spanish",
+                "esbenp.prettier-vscode"
             ]
         }
     }

@@ -1,6 +1,6 @@
-import express from 'express'
-import cors from 'cors'
-import { rutas } from './rutas'
+import express from "express"
+import cors from "cors"
+import { rutas } from "./rutas"
 
 const app = express()
 
@@ -14,5 +14,5 @@ app.use(express.urlencoded({ extended: true }))
 app.use(rutas)
 
 app.listen(PORT, () => {
-    console.log(`http://localhost:${PORT}`)
+  console.log(`http://localhost:${PORT}`)
 })

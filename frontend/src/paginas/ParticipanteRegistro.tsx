@@ -91,12 +91,12 @@ export default function ParticipanteRegistro() {
         try {
             setLoading(true);
             setError("");
-            const response = await api.post('/registro-usuario', {
+            const response = await api.post('/usuarios/registrar', {
                 rfc: data.rfc,
-                contrasena: data.contrasena,
+                contra: data.contrasena,
                 tipo: "participante",
                 nom: data.nombre,
-                apdos: data.apellidos,
+                apds: data.apellidos,
                 fnac: data.fechaNacimiento,
                 sex: data.sexo,
                 correo: data.correo,

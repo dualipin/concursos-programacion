@@ -1,26 +1,13 @@
 import { api } from "@/api";
 
 export async function obtenerConcursos() {
-    const response = await api.get("/concursos");
+    const response = await api.get("/concursos/obtener");
     return response.data;
 }
 
 export async function proximosConcursos(): Promise<any[]> {
-    const response = await api.get("/concursos");
-
-    console.log("Concursos obtenidos:", response.data);
-    const now = new Date();
-
-    const proximos = response.data.filter((concurso: any) => {
-        // Parse fmin as DD/MM/YYYY
-        const [day, month, year] = concurso.fmin.split("/");
-        const fechaMaxInscripcion = new Date(Number(year), Number(month) - 1, Number(day));
-        return fechaMaxInscripcion >= now;
-    });
-
-    console.log("Proximos concursos:", proximos);
-
-    return proximos;
+    const response = await api.get("/concursos/proximos");
+    return response.data;
 }
 
 
@@ -29,19 +16,22 @@ export async function registrarConcurso(
         clv: string;
         nom: string;
         dsc?: string;
-        fini: string; // YYYY-MM-DD
+        fcre: string; // YYYY-MM-DD
         ffin: string; // YYYY-MM-DD
-        fmin: string; // YYYY-MM-DD
+        fins: string; // YYYY-MM-DD
         lugar: string;
+        rq?: string; // Requisitos
+        maxpar?: number; // Máximo de participantes
     },
-    criterios: { nombre: string; valor: number }[] = []
+    criterios: [] = []
 ) {
+    const rfc = localStorage.getItem("rfc");
     // Enviar ambos: concurso y criterios de evaluación
     const payload = {
         ...concurso,
         criterios
     };
-    const response = await api.post("/concursos", payload);
+    const response = await api.post("/concursos/registrar/" + rfc, payload);
     return response.data;
 }
 

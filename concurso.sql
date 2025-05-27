@@ -12,8 +12,12 @@ CREATE TABLE IF NOT EXISTS concurso (
 
 CREATE TABLE IF NOT EXISTS criterio (
     clv SERIAL PRIMARY KEY,
-    nom VARCHAR(100) NOT NULL COMMENT 'nombre',
-    valor DECIMAL(10, 2) NOT NULL,
+    nom VARCHAR(100) NOT NULL COMMENT 'nombre'
+);
+
+CREATE TABLE IF NOT EXISTS criterio_concurso (
+    clv BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT COMMENT 'clave criterio concurso',
+    clvcrit BIGINT UNSIGNED NOT NULL COMMENT 'clave criterio',
     clvcon VARCHAR(20) NOT NULL COMMENT 'clave concurso',
     FOREIGN KEY (clvcon) REFERENCES concurso (clv)
 );
@@ -55,7 +59,7 @@ CREATE TABLE IF NOT EXISTS calificacion (
     clvcon VARCHAR(20) NOT NULL COMMENT 'clave concurso',
     calif DECIMAL(10, 2) NOT NULL COMMENT 'calificacion',
     com TEXT COMMENT 'comentario',
-    FOREIGN KEY (clvcrit) REFERENCES criterio (clv),
+    FOREIGN KEY (clvcrit) REFERENCES criterio_concurso (clv),
     FOREIGN KEY (rfcjur, clvcon) REFERENCES rol_concurso (rfc, clvcon),
     FOREIGN KEY (rfcpar, clvcon) REFERENCES rol_concurso (rfc, clvcon),
     PRIMARY KEY (rfcjur, rfcpar, clvcrit)
